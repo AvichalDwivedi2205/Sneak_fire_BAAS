@@ -83,7 +83,7 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
             type="button" // Type should be button for Google Sign-in
             onClick={handleGoogleProvider}
           >
-            Sign In with Google
+            {isSignUp ? "Sign Up" : "Sign In"} with Google
             <BottomGradient />
           </button>
         </form>
