@@ -1,9 +1,10 @@
 import Image from "next/image";
-import AuthForm from "@/components/auth/auth";
+import Navbar from "@/components/Navbar/Navbar";
 
 export default function Home() {
   return (
   <div>
+    <Navbar />
   </div>
   );
 }
