@@ -8,7 +8,7 @@ export default function NavbarRender() {
   const pathname = usePathname();
 
   // Conditionally show the Navbar
-  const showNavbar = !['/signup', '/signin'].includes(pathname);
+  const showNavbar = !['/signup', '/signin', '/profile'].includes(pathname);
 
   return showNavbar ? <Navbar /> : null;
 }

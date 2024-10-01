@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent the form from reloading the page
@@ -24,6 +26,8 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
       } else {
         await signInWithEmailAndPassword(auth, email, password); // Add await here
       }
+      // Redirect to home page after successful authentication
+      router.push('/');
     } catch (err: any) {
       setError(err.message);
     }
@@ -32,6 +36,8 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   const handleGoogleProvider = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
+      // Redirect to home page after successful Google sign-in
+      router.push('/');
     } catch (err: any) {
       setError(err.message);
     }
