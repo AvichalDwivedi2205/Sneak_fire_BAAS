@@ -15,8 +15,7 @@ export const firebaseConfig = {
 
 // Initialize Firebase    
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-export { app, analytics, auth, googleProvider };
+export { app, auth, googleProvider };

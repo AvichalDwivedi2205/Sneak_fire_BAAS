@@ -60,14 +60,25 @@ const Navbar = () => {
           {/* Right Section: Auth Buttons or Profile */}
           <div className="flex items-center">
             {!user ? (
-              <div className="hidden md:flex space-x-4">
-                <Link href="/signin" className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+              <>
+                <div className="hidden md:flex space-x-4">
+                  <Link href="/signin" className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
                     Sign In  
-                </Link>
-                <Link href="/signup" className="px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
+                  </Link>
+                  <Link href="/signup" className="px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
                     Sign Up
-                </Link>
-              </div>
+                  </Link>
+                </div>
+                {/* Mobile Auth Buttons */}
+                <div className="md:hidden flex space-x-2">
+                  <Link href="/signin" className="px-2 py-1 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                    Sign In
+                  </Link>
+                  <Link href="/signup" className="px-2 py-1 rounded-md text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
+                    Sign Up
+                  </Link>
+                </div>
+              </>
             ) : (
               <Link href="/profile">
                   <img
@@ -112,25 +123,6 @@ const Navbar = () => {
 
               </Link>
             ))}
-
-            {!user ? (
-              <>
-                <Link href="/signin" className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    Sign In
-                </Link>
-                <Link href="/signup" className="block px-3 py-2 rounded-md text-base font-medium bg-blue-500 text-white hover:bg-blue-600">
-                  
-                    Sign Up
-                  
-                </Link>
-              </>
-            ) : (
-              <Link href="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-                
-                  Profile
-                
-              </Link>
-            )}
           </div>
         </div>
       )}
