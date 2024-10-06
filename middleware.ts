@@ -1,37 +1,50 @@
+// middleware.ts
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getAuth } from 'firebase-admin/auth';
-import { initializeApp, applicationDefault, cert } from 'firebase-admin/app';
+import { adminAuth } from './config/firebase-admin';
 
-// Initialize Firebase Admin SDK
-initializeApp({
-  credential: applicationDefault(), // or cert() if you're using a service account key
-});
+// Define protected routes that require authentication
+const protectedRoutes = ['/profile'];
+// Define authentication routes that should not be accessed when authenticated
+const authRoutes = ['/signin', '/signup'];
 
 export async function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
+  const session = request.cookies.get('session')?.value;
+
+  // Check if user is authenticated
+  let isAuthenticated = false;
   
-  // Retrieve token from Authorization header
-  const token = request.headers.get('Authorization')?.split('Bearer ')[1];
-
-  if (token) {
+  if (session) {
     try {
-      const decodedToken = await getAuth().verifyIdToken(token);
-      const user = decodedToken;
-
-      // If authenticated user tries to access login/signup page, redirect to home
-      if (user && (path === '/login' || path === '/signup')) {
-        return NextResponse.redirect(new URL('/', request.url));
-      }
+      // Verify session cookie with Firebase Admin
+      await adminAuth.verifySessionCookie(session, true);
+      isAuthenticated = true;
     } catch (error) {
-      console.error('Token verification failed:', error);
+      isAuthenticated = false;
     }
   }
 
-  // If no token and user is trying to access profile, redirect to login
-  if (!token && path === '/profile') {
-    return NextResponse.redirect(new URL('/login', request.url));
+  // Get the pathname of the request
+  const { pathname } = request.nextUrl;
+
+  // Redirect logic
+  if (isAuthenticated) {
+    // If user is authenticated and tries to access auth routes, redirect to home
+    if (authRoutes.includes(pathname)) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  } else {
+    // If user is not authenticated and tries to access protected routes, redirect to signin
+    if (protectedRoutes.includes(pathname)) {
+      return NextResponse.redirect(new URL('/signin', request.url));
+    }
   }
 
   return NextResponse.next();
 }
+
+// Configure the middleware to run on specific paths
+export const config = {
+  matcher: [...protectedRoutes, ...authRoutes]
+};
