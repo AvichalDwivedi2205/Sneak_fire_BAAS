@@ -9,8 +9,11 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  sendEmailVerification,
 } from "firebase/auth";
-import { IconBrandGoogle } from "@tabler/icons-react";
+import Link from "next/link";
+import { getDoc, doc, setDoc } from "firebase/firestore"; // Firestore imports
+import { firestore } from "@/config/firebase"; // Firestore config
 
 const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   const [email, setEmail] = useState("");
@@ -18,16 +21,51 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // Function to check if a user exists in Firestore
+  const checkUserExistsInFirestore = async (uid: string) => {
+    const userDoc = await getDoc(doc(firestore, "users", uid));
+    return userDoc.exists(); // Returns true if the user already exists
+  };
+
+  // Function to save user in Firestore only if they don't already exist
+  const saveUserInFirestore = async (user: any) => {
+    const userExists = await checkUserExistsInFirestore(user.uid);
+
+    if (!userExists) {
+      const userData = {
+        name: user.displayName || "",
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        isSeller: false, // Default value, can be updated later
+        shoeSize: 0, // Default value, can be updated later
+        sellerVerification: "N/A",
+        createdAt: new Date(),
+        profilePicture: user.photoURL || "",
+      };
+      
+      await setDoc(doc(firestore, "users", user.uid), userData);
+      
+    } else {
+      console.log("User already exists in Firestore");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent the form from reloading the page
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
+        alert("A verification email has been sent. Please check your inbox.");
+
+        // Save user to Firestore
+        await saveUserInFirestore(userCredential.user);
       } else {
-        await signInWithEmailAndPassword(auth, email, password); // Add await here
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
       }
+
       // Redirect to home page after successful authentication
-      router.push('/');
+      router.push("/profile");
     } catch (err: any) {
       setError(err.message);
     }
@@ -35,9 +73,13 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
 
   const handleGoogleProvider = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      
+      // Save Google user to Firestore
+      await saveUserInFirestore(userCredential.user);
+      
       // Redirect to home page after successful Google sign-in
-      router.push('/');
+      router.push("/profile");
     } catch (err: any) {
       setError(err.message);
     }
@@ -92,6 +134,15 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
             {isSignUp ? "Sign Up" : "Sign In"} with Google
             <BottomGradient />
           </button>
+          {isSignUp ? (
+            <div className="flex justify-center pt-4">
+              Already have an account? &nbsp;<span className="text-blue-500"><Link href="/signin">SignIn</Link></span>
+            </div>
+          ) : (
+            <div className="flex justify-center pt-4">
+              Do not have an account? &nbsp;<span className="text-blue-500"><Link href="/signup">SignUp</Link></span>
+            </div>
+          )}
         </form>
       </div>
     </div>

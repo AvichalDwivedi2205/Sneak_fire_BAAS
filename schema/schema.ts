@@ -3,7 +3,8 @@ export type User = {
     email: string;
     phone: string;
     isSeller: boolean;
-    sellerVerification: 'pending' | 'verified' | 'rejected';
+    shoeSize: number;
+    sellerVerification: 'pending' | 'verified' | 'rejected' | 'N/A';
     createdAt: Date;
     profilePicture?: string;
 };
@@ -11,9 +12,10 @@ export type User = {
 export type Sneaker = {
     name: string;
     description: string;
-    price: number;
+    openingBid: number;
     imageUrl: string;
     sellerId: string;
+    sizesAvailable: number[];
     status: 'open' | 'closed';
     topBids: {userId: string, amount: number}[];
 };
