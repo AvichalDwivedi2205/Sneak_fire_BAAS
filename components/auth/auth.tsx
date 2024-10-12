@@ -41,11 +41,23 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
         sellerVerification: "N/A",
         createdAt: new Date(),
         profilePicture: user.photoURL || "",
+        shippingInfo: null,
       };
-      
       await setDoc(doc(firestore, "users", user.uid), userData);
-      
+      const createdAt = userData?.createdAt.toISOString();
+      const profileData = {...userData, createdAt}
+      localStorage.setItem("userProfile", JSON.stringify(profileData));
     } else {
+      const userDoc = await getDoc(doc(firestore, "users", user.uid));
+      if(userDoc.exists()){
+        const userData = userDoc.data()
+        const createdAt = userData?.createdAt.toDate().toISOString();
+        const profileData = {...userData, createdAt}
+        localStorage.setItem("userProfile", JSON.stringify(profileData))
+        console.log("User data saved in localStorage:", profileData);
+      }else{
+        console.log("User does not exist in Firestore");
+      }
       console.log("User already exists in Firestore");
     }
   };
@@ -149,7 +161,7 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   );
 };
 
-const BottomGradient = () => {
+export const BottomGradient = () => {
   return (
     <>
       <span className="group-hover/btn:opacity-100 block transition duration-500 opacity-0 absolute h-px w-full -bottom-px inset-x-0 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
