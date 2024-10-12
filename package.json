@@ -12,6 +12,7 @@
     "@heroicons/react": "^2.1.5",
     "@radix-ui/react-label": "^2.1.0",
     "@tabler/icons-react": "^3.19.0",
+    "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "firebase": "^10.13.2",
     "firebase-admin": "^12.6.0",
