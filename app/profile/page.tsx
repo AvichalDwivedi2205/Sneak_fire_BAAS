@@ -84,8 +84,23 @@ export default function ProfilePage() {
               <label className="font-semibold">Shoe Size:</label>
               <p>{profile?.shoeSize || "Not Provided"}</p>
             </div>
+          </div>
+        </div>
+
+        {/* Seller/Buyer Information Section */}
+        <div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
+              Seller/Buyer Information
+            </h2>
+            <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
+              Edit
+            </button>
+          </div>
+
+          <div className="text-gray-800 dark:text-gray-300">
             <div className="mb-2">
-              <label className="font-semibold">Seller Status:</label>
+              <label className="font-semibold">Status:</label>
               <p>{profile?.isSeller ? "Seller" : "Buyer"}</p>
             </div>
             {profile?.isSeller && (
@@ -96,7 +111,6 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
-
         {/* Shipping Information Section */}
         <div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
           <div className="flex justify-between items-center mb-4">

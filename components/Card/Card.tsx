@@ -13,7 +13,7 @@ const SneakerCard = ({ sneaker }: { sneaker: Sneaker }) => {
         <div className="relative overflow-hidden rounded-lg shadow-lg border-2 border-gray-200 dark:border-gray-800 group-hover:border-blue-500 transition-all duration-500">
           <div className="w-full h-64"> {/* Fixed height for rectangular shape */}
             <Image
-              src={sneaker.imageUrl}
+              src={sneaker.imageUrls.sideView}
               alt={sneaker.name}
               width={320} // Fixed width
               height={256} // Fixed height to create a rectangular frame

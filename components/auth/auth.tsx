@@ -45,10 +45,18 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
         shippingInfo: null,
       };
       await setDoc(doc(firestore, "users", user.uid), userData);
-      const createdAt = userData?.createdAt.toISOString();
-      const profileData = {...userData, createdAt}
+
+      // Save user data to local storage
+      localStorage.setItem("isSeller", JSON.stringify(userData.isSeller));
+      localStorage.setItem("shoeSize", JSON.stringify(userData.shoeSize));
     } else {
       console.log("User already exists in Firestore");
+      // Fetch existing user data and store in local storage
+      const existingUser = (await getDoc(doc(firestore, "users", user.uid))).data();
+      if (existingUser) {
+        localStorage.setItem("isSeller", JSON.stringify(existingUser.isSeller));
+        localStorage.setItem("shoeSize", JSON.stringify(existingUser.shoeSize));
+      }
     }
   };
 
@@ -59,11 +67,12 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCredential.user);
         alert("A verification email has been sent. Please check your inbox.");
-
         // Save user to Firestore
         await saveUserInFirestore(userCredential.user);
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Save user to Firestore
+        await saveUserInFirestore(userCredential.user);
       }
 
       // Redirect to home page after successful authentication
@@ -76,10 +85,10 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   const handleGoogleProvider = async () => {
     try {
       const userCredential = await signInWithPopup(auth, googleProvider);
-      
+
       // Save Google user to Firestore
       await saveUserInFirestore(userCredential.user);
-      
+
       // Redirect to home page after successful Google sign-in
       router.push("/profile");
     } catch (err: any) {

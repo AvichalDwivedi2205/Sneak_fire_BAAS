@@ -54,9 +54,10 @@ export type User = {
 
 export type Sneaker = {
     name: string;
+    type: string;
     description: string;
     openingBid: number;
-    imageUrl: string;
+    imageUrls: {frontView: string, backView: string, sideView: string, topDownView: string, outSoleView: string};
     sellerId: string;
     sizesAvailable: number[];
     status: 'open' | 'closed';
