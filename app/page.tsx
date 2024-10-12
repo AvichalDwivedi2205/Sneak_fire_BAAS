@@ -1,7 +1,5 @@
 import Image from "next/image";
-import { ThreeDCard } from "../components/Card/Card";
-import Test_Image from "../assets/Image-pexels.jpg"
-
+import SneakerCard from "../components/Card/Card";
 
 
 export default function Home() {
