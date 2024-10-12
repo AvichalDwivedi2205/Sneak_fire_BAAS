@@ -1,19 +1,47 @@
 "use client";
-import React from 'react';
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import { signOut } from "firebase/auth";
+import { auth, firestore } from "@/config/firebase"; // Firebase imports
+import { doc, getDoc } from "firebase/firestore"; // Firestore imports
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
+  const router = useRouter();
 
+  // Fetch user profile from Firestore on mount
   useEffect(() => {
-    const fetchProfile = localStorage.getItem("userProfile");
-    if (fetchProfile) {
-      setProfile(JSON.parse(fetchProfile));
-    } else {
-      console.log("No profile found");
+    const fetchProfile = async () => {
+      const user = auth.currentUser; // Get the currently authenticated user
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(firestore, "users", user.uid)); // Fetch user data from Firestore
+          if (userDoc.exists()) {
+            setProfile(userDoc.data()); // Set the profile state
+          } else {
+            console.error("User profile not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      } else {
+        console.log("No authenticated user found.");
+        router.push("/"); // Redirect to home if no user
+      }
+    };
+
+    fetchProfile(); // Call the fetch function
+  }, [router]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      router.push("/"); // Redirect to home page
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
-  }, []);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 py-8 px-4 md:px-0">
@@ -43,9 +71,8 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          {/* Information Fields */}
           <div className="text-gray-800 dark:text-gray-300">
-          <div className="mb-2">
+            <div className="mb-2">
               <label className="font-semibold">Name:</label>
               <p>{profile?.name || "Not Provided"}</p>
             </div>
@@ -68,10 +95,10 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-          
         </div>
-         {/* Shipping Information Section */}
-         <div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
+
+        {/* Shipping Information Section */}
+        <div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
               Shipping Information
@@ -81,7 +108,6 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          {/* Shipping Fields */}
           <div className="text-gray-800 dark:text-gray-300">
             {profile?.shippingInfo ? (
               <>
@@ -115,6 +141,17 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Sign Out Button */}
+        <div className="text-center mb-6">
+          <button
+            onClick={handleSignOut}
+            className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:ring focus:ring-red-400"
+          >
+            Sign Out
+          </button>
+        </div>
+
         {/* Profile Footer */}
         <div className="text-center text-sm text-gray-600 dark:text-gray-400">
           <p>&copy; 2024 SneakBid. All rights reserved.</p>

@@ -30,6 +30,7 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   // Function to save user in Firestore only if they don't already exist
   const saveUserInFirestore = async (user: any) => {
     const userExists = await checkUserExistsInFirestore(user.uid);
+    console.log(user.uid);
 
     if (!userExists) {
       const userData = {
@@ -46,18 +47,7 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
       await setDoc(doc(firestore, "users", user.uid), userData);
       const createdAt = userData?.createdAt.toISOString();
       const profileData = {...userData, createdAt}
-      localStorage.setItem("userProfile", JSON.stringify(profileData));
     } else {
-      const userDoc = await getDoc(doc(firestore, "users", user.uid));
-      if(userDoc.exists()){
-        const userData = userDoc.data()
-        const createdAt = userData?.createdAt.toDate().toISOString();
-        const profileData = {...userData, createdAt}
-        localStorage.setItem("userProfile", JSON.stringify(profileData))
-        console.log("User data saved in localStorage:", profileData);
-      }else{
-        console.log("User does not exist in Firestore");
-      }
       console.log("User already exists in Firestore");
     }
   };

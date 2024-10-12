@@ -51,16 +51,6 @@ const sneakers = [
     status: 'closed' as 'closed',
     topBids: [{ userId: 'user1', amount: 250 }, { userId: 'user2', amount: 300 }],
   },
-  {
-    name: 'Yeezy Boost 350 ',
-    description: 'The Yeezy Boost 350 is a trendy and comfortable sneaker.',
-    openingBid: 150,
-    imageUrl: 'https://firebasestorage.googleapis.com/v0/b/sneakbid-e571f.appspot.com/o/sneakerImages%2FAir_Jordans_1.jpeg?alt=media&token=76d93380-dcb2-4ae1-8a80-2a75c23aa777', // Using same image for testing
-    sellerId: 'seller456',
-    sizesAvailable: [8, 9, 10],
-    status: 'closed' as 'closed',
-    topBids: [{ userId: 'user1', amount: 250 }, { userId: 'user2', amount: 300 }],
-  },
   // Add more sneakers for testing
 ];
 
