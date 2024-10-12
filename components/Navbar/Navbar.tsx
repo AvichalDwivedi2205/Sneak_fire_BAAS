@@ -1,14 +1,17 @@
-"use client"
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/config/firebase"; // Firebase configuration (adjust the path as needed)
-import { FiMenu, FiX } from "react-icons/fi"; // Replacing Heroicons with React Icons
+import { auth } from "@/config/firebase";
+import { FiMenu, FiX } from "react-icons/fi";
+import { usePathname } from "next/navigation"; // Import for path detection
 
 const Navbar = () => {
   const [active, setActive] = useState("Home");
   const [user, loading, error] = useAuthState(auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const pathname = usePathname(); // Detect the current path
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -17,7 +20,19 @@ const Navbar = () => {
     { name: "Contact", href: "/contact" },
   ];
 
-  const handleSetActive = (name: any) => {
+  // useEffect to track changes in pathname and update the active state
+  useEffect(() => {
+    if (pathname === "/") {
+      setActive("Home");
+    } else if (pathname === "/profile") {
+      setActive("Profile");
+    } else {
+      const current = navigation.find((item) => item.href === pathname);
+      if (current) setActive(current.name);
+    }
+  }, [pathname]);
+
+  const handleSetActive = (name: string) => {
     setActive(name);
     setIsMobileMenuOpen(false); // Close mobile menu on selection
   };
@@ -28,31 +43,32 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           {/* Left Section: Logo and Brand Name */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              
-                <img
-                  src="/path-to-logo.png" 
-                  alt="SneakBid Logo"
-                  className="h-8 w-8 mr-2"
-                />
-                <span className="font-bold text-xl text-gray-800 dark:text-white">
-                  SneakBid
-                </span>
+            <Link href="/" className="flex items-center" onClick={() => handleSetActive("Home")}>
+              <img
+                src="/path-to-logo.png"
+                alt="SneakBid Logo"
+                className="h-8 w-8 mr-2"
+              />
+              <span className="font-bold text-xl text-gray-800 dark:text-white">
+                SneakBid
+              </span>
             </Link>
           </div>
 
           {/* Middle Section: Navigation Links */}
           <div className="hidden md:flex md:items-center">
             {navigation.map((item) => (
-              <Link key={item.name} href={item.href}
-              onClick={() => handleSetActive(item.name)}
-                  className={`ml-4 px-3 py-2 rounded-md text-sm font-medium ${
-                    active === item.name
-                      ? "border-b-2 border-blue-500 dark:border-gray-400"
-                      : "text-gray-600 dark:text-gray-300 hover:border-b-2 hover:border-gray-400"
-                  }`}>
-                
-                  {item.name}
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={() => handleSetActive(item.name)}
+                className={`ml-4 px-3 py-2 rounded-md text-sm font-medium ${
+                  active === item.name
+                    ? "border-b-2 border-blue-500 dark:border-gray-400"
+                    : "text-gray-600 dark:text-gray-300 hover:border-b-2 hover:border-gray-400"
+                }`}
+              >
+                {item.name}
               </Link>
             ))}
           </div>
@@ -62,30 +78,42 @@ const Navbar = () => {
             {!user ? (
               <>
                 <div className="hidden md:flex space-x-4">
-                  <Link href="/signin" className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                    Sign In  
+                  <Link
+                    href="/signin"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                  >
+                    Sign In
                   </Link>
-                  <Link href="/signup" className="px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
+                  <Link
+                    href="/signup"
+                    className="px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition"
+                  >
                     Sign Up
                   </Link>
                 </div>
                 {/* Mobile Auth Buttons */}
                 <div className="md:hidden flex space-x-2">
-                  <Link href="/signin" className="px-2 py-1 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                  <Link
+                    href="/signin"
+                    className="px-2 py-1 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                  >
                     Sign In
                   </Link>
-                  <Link href="/signup" className="px-2 py-1 rounded-md text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
+                  <Link
+                    href="/signup"
+                    className="px-2 py-1 rounded-md text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 transition"
+                  >
                     Sign Up
                   </Link>
                 </div>
               </>
             ) : (
-              <Link href="/profile">
-                  <img
-                    src={user.photoURL || "/default-profile.png"} 
-                    alt="Profile"
-                    className="h-8 w-8 rounded-full"
-                  />
+              <Link href="/profile" onClick={() => handleSetActive("Profile")}>
+                <img
+                  src={user.photoURL || "/default-profile.png"}
+                  alt="Profile"
+                  className="h-8 w-8 rounded-full"
+                />
               </Link>
             )}
 
@@ -96,9 +124,9 @@ const Navbar = () => {
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none"
               >
                 {isMobileMenuOpen ? (
-                  <FiX className="h-6 w-6" /> // Close Icon
+                  <FiX className="h-6 w-6" />
                 ) : (
-                  <FiMenu className="h-6 w-6" /> // Menu Icon
+                  <FiMenu className="h-6 w-6" />
                 )}
               </button>
             </div>
@@ -111,16 +139,17 @@ const Navbar = () => {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navigation.map((item) => (
-              <Link key={item.name} href={item.href}
-              onClick={() => handleSetActive(item.name)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    active === item.name
-                      ? "border-l-4 border-blue-500 dark:border-gray-400 bg-gray-100 dark:bg-gray-700"
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-                  }`}>
-                
-                  {item.name}
-
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={() => handleSetActive(item.name)}
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  active === item.name
+                    ? "border-l-4 border-blue-500 dark:border-gray-400 bg-gray-100 dark:bg-gray-700"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                }`}
+              >
+                {item.name}
               </Link>
             ))}
           </div>

@@ -98,8 +98,8 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white dark:bg-black">
-      <div className="max-w-md w-full mx-auto rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="max-w-md w-full mx-auto rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-800 dark:via-gray-900 dark:to-gray-800">
         <h2 className="text-center font-bold text-xl text-neutral-800 dark:text-neutral-200">
           Welcome to SneakBid
         </h2>
