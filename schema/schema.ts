@@ -30,9 +30,7 @@ export type Sneaker = {
     topBids: {userId: string, amount: string}[];
   };
 
-export type Bid = {
-    userId : string;
-    sneakerId :string;
-    bidAmount : number;
-    timestamp : number;
-}
+  interface Bid {
+    userId: string;
+    amount: string;
+  }
