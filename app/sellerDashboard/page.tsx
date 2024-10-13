@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { User, Sneaker } from "@/schema/schema";
 import { auth, firestore, storage } from "@/config/firebase";
@@ -39,6 +39,13 @@ const SellerDashboard: React.FC = () => {
     back: null,
     sole: null,
   });
+
+  // Create refs for the image input fields
+  const frontImageRef = useRef<HTMLInputElement | null>(null);
+  const sideImageRef = useRef<HTMLInputElement | null>(null);
+  const backImageRef = useRef<HTMLInputElement | null>(null);
+  const soleImageRef = useRef<HTMLInputElement | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -62,7 +69,6 @@ const SellerDashboard: React.FC = () => {
 
   const fetchUserAndSneakers = async (currentUser: any): Promise<void> => {
     try {
-      // Fetch the user details
       const userQuery = query(
         collection(firestore, "users"),
         where("email", "==", currentUser.email)
@@ -72,14 +78,12 @@ const SellerDashboard: React.FC = () => {
         setUser(userDocs.docs[0].data() as User);
       }
 
-      // Fetch sneakers from Firestore where sellerId matches current user email
       const sneakersQuery = query(
         collection(firestore, "sneakers"),
         where("sellerId", "==", currentUser.email)
       );
       const sneakerDocs = await getDocs(sneakersQuery);
 
-      // Map sneaker data directly
       const sneakersData = sneakerDocs.docs.map(
         (doc: QueryDocumentSnapshot<DocumentData>) => {
           const sneaker = { id: doc.id, ...doc.data() } as Sneaker;
@@ -150,6 +154,8 @@ const SellerDashboard: React.FC = () => {
       await updateDoc(doc(firestore, "sneakers", docRef.id), { imageUrls });
       const updatedSneaker: Sneaker = { ...sneakerData, id: docRef.id, imageUrls };
       setSneakers((prev) => [...prev, updatedSneaker]);
+
+      // Reset form fields and images
       setNewSneaker({
         name: "",
         type: "",
@@ -163,6 +169,13 @@ const SellerDashboard: React.FC = () => {
         back: null,
         sole: null,
       });
+
+      // Clear the file inputs
+      if (frontImageRef.current) frontImageRef.current.value = "";
+      if (sideImageRef.current) sideImageRef.current.value = "";
+      if (backImageRef.current) backImageRef.current.value = "";
+      if (soleImageRef.current) soleImageRef.current.value = "";
+      
     } catch (error) {
       console.error("Error adding sneaker: ", error);
     }
@@ -214,7 +227,7 @@ const SellerDashboard: React.FC = () => {
             value={newSneaker.openingBid}
             onChange={handleInputChange}
             placeholder="Opening Bid"
-            className="border p-2 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            className="border p-2 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full"
             required
           />
           <input
@@ -222,8 +235,8 @@ const SellerDashboard: React.FC = () => {
             name="sizesAvailable"
             value={newSneaker.sizesAvailable?.join(", ")}
             onChange={handleSizesChange}
-            placeholder="Sizes Available (comma-separated)"
-            className="border p-2 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            placeholder="Sizes Available (eg: 2, 3, 4)"
+            className="border p-2 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full"
             required
           />
 
@@ -235,6 +248,7 @@ const SellerDashboard: React.FC = () => {
               </label>
               <input
                 type="file"
+                ref={frontImageRef} // Attach ref to the file input
                 onChange={(e) => handleImageChange(e, "front")}
                 accept="image/*"
                 className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -247,6 +261,7 @@ const SellerDashboard: React.FC = () => {
               </label>
               <input
                 type="file"
+                ref={sideImageRef} // Attach ref to the file input
                 onChange={(e) => handleImageChange(e, "side")}
                 accept="image/*"
                 className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -259,6 +274,7 @@ const SellerDashboard: React.FC = () => {
               </label>
               <input
                 type="file"
+                ref={backImageRef} // Attach ref to the file input
                 onChange={(e) => handleImageChange(e, "back")}
                 accept="image/*"
                 className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -271,6 +287,7 @@ const SellerDashboard: React.FC = () => {
               </label>
               <input
                 type="file"
+                ref={soleImageRef} // Attach ref to the file input
                 onChange={(e) => handleImageChange(e, "sole")}
                 accept="image/*"
                 className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -297,7 +314,7 @@ const SellerDashboard: React.FC = () => {
             sneaker={sneaker}
           />
         ))}
-          </div>
+      </div>
     </div>
   );
 };

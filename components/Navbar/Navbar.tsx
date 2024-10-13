@@ -137,15 +137,23 @@ const Navbar = () => {
                   />
                 </Link>
                 {/* Sell Button - Visible when user is authenticated and isSeller is true */}
-                {isSeller && (
+                {isSeller ?
                   <Link
                     href="/sellerDashboard"
                     onClick={() => handleSetActive("Sell")}
-                    className="ml-4 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 px-2 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
+                    className="ml-4 px-2 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
                   >
                     Sell
                   </Link>
-                )}
+                  :
+                  <Link
+                    href="/contact"
+                    onClick={() => handleSetActive("Sell")}
+                    className="ml-4 px-2 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
+                  >
+                    Sell
+                  </Link>
+                }
                 {/* Sign Out Button */}
                 <button
                   onClick={handleSignOut}
