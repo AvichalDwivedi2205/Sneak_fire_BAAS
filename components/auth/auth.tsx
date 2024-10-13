@@ -62,25 +62,38 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent the form from reloading the page
+  
     try {
       if (isSignUp) {
+        // Check if a user with this email already exists
+        const userDocRef = doc(firestore, "users", email);
+        const userDoc = await getDoc(userDocRef);
+  
+        if (userDoc.exists()) {
+          setError("This email is already in use. Please use a different one.");
+          return;
+        }
+  
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCredential.user);
         alert("A verification email has been sent. Please check your inbox.");
+        
         // Save user to Firestore
         await saveUserInFirestore(userCredential.user);
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
         // Save user to Firestore
         await saveUserInFirestore(userCredential.user);
       }
-
-      // Redirect to home page after successful authentication
+  
+      // Redirect to profile page after successful authentication
       router.push("/profile");
     } catch (err: any) {
       setError(err.message);
     }
   };
+  
 
   const handleGoogleProvider = async () => {
     try {

@@ -297,7 +297,7 @@ const SellerDashboard: React.FC = () => {
             sneaker={sneaker}
           />
         ))}
-      </div>
+          </div>
     </div>
   );
 };

@@ -5,11 +5,13 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/config/firebase";
 import { FiMenu, FiX } from "react-icons/fi";
 import { usePathname } from "next/navigation"; // Import for path detection
+import { signOut } from "firebase/auth"; // Import signOut function
 
 const Navbar = () => {
   const [active, setActive] = useState("Home");
   const [user, loading, error] = useAuthState(auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSeller, setIsSeller] = useState(false); // State to track if the user is a seller
 
   const pathname = usePathname(); // Detect the current path
 
@@ -20,12 +22,20 @@ const Navbar = () => {
     { name: "Contact", href: "/contact" },
   ];
 
+  // useEffect to check localStorage for isSeller and update the state
+  useEffect(() => {
+    const sellerStatus = localStorage.getItem("isSeller") === "true";
+    setIsSeller(sellerStatus);
+  }, [user]);
+
   // useEffect to track changes in pathname and update the active state
   useEffect(() => {
     if (pathname === "/") {
       setActive("Home");
     } else if (pathname === "/profile") {
       setActive("Profile");
+    } else if (pathname === "/sellerDashboard") {
+      setActive("Sell"); // Add "Sell" as the active state for Seller Dashboard
     } else {
       const current = navigation.find((item) => item.href === pathname);
       if (current) setActive(current.name);
@@ -35,6 +45,16 @@ const Navbar = () => {
   const handleSetActive = (name: string) => {
     setActive(name);
     setIsMobileMenuOpen(false); // Close mobile menu on selection
+  };
+
+  // Firebase SignOut handler
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("isSeller"); // Remove isSeller from localStorage after signout
+    } catch (error) {
+      console.error("Sign Out Error:", error);
+    }
   };
 
   return (
@@ -73,7 +93,7 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Right Section: Auth Buttons or Profile */}
+          {/* Right Section: Auth Buttons, Profile, and Sell Button */}
           <div className="flex items-center">
             {!user ? (
               <>
@@ -108,13 +128,32 @@ const Navbar = () => {
                 </div>
               </>
             ) : (
-              <Link href="/profile" onClick={() => handleSetActive("Profile")}>
-                <img
-                  src={user.photoURL || "/default-profile.png"}
-                  alt="Profile"
-                  className="h-8 w-8 rounded-full"
-                />
-              </Link>
+              <>
+                <Link href="/profile" onClick={() => handleSetActive("Profile")}>
+                  <img
+                    src={user.photoURL || "/default-profile.png"}
+                    alt="Profile"
+                    className="h-8 w-8 rounded-full"
+                  />
+                </Link>
+                {/* Sell Button - Visible when user is authenticated and isSeller is true */}
+                {isSeller && (
+                  <Link
+                    href="/sellerDashboard"
+                    onClick={() => handleSetActive("Sell")}
+                    className="ml-4 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 px-2 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
+                  >
+                    Sell
+                  </Link>
+                )}
+                {/* Sign Out Button */}
+                <button
+                  onClick={handleSignOut}
+                 className="bg-red-500 ml-4 text-white p-1 rounded-md hover:bg-red-600 focus:ring focus:ring-red-400"
+                >
+                  Sign Out
+                </button>
+              </>
             )}
 
             {/* Mobile Menu Button */}
