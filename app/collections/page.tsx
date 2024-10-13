@@ -1,69 +1,17 @@
+// app/collections/page.tsx
 import SneakerCard from '@/components/Card/Card';
+import { Sneaker } from '@/schema/schema';
+import { getSneakers } from '@/config/firebase';
 
-const sneakers = [
-  {
-    name: 'Air Jordan 1',
-    description: 'A classic sneaker for all sneakerheads.',
-    openingBid: '150',
-    imageUrls: ['','https://firebasestorage.googleapis.com/v0/b/sneakbid-e571f.appspot.com/o/sneakerImages%2FAir_Jordans_1.jpeg?alt=media&token=76d93380-dcb2-4ae1-8a80-2a75c23aa777'],
-    sellerId: 'seller123',
-    sizesAvailable: ['8', '9', '10'],
-    status: 'open' as 'open',
-    topBids: [{ userId: 'user1', amount: '250' }, { userId: 'user2', amount: '300' }],
-    type: "Retro",
-  },
-  {
-    name: 'Yeezy Boost 350 ',
-    description: 'The Yeezy Boost 350 is a trendy and comfortable sneaker.',
-    openingBid: '150',
-    imageUrls: ['','https://firebasestorage.googleapis.com/v0/b/sneakbid-e571f.appspot.com/o/sneakerImages%2FAir_Jordans_1.jpeg?alt=media&token=76d93380-dcb2-4ae1-8a80-2a75c23aa777'],
-    sellerId: 'seller456',
-    sizesAvailable: ['8', '9', '10'],
-    status: 'closed' as 'closed',
-    topBids: [{ userId: 'user1', amount: '250' }, { userId: 'user2', amount: '300' }],
-    type: "Retro",
-  },
-  {
-    name: 'Yeezy Boost 350 ',
-    description: 'The Yeezy Boost 350 is a trendy and comfortable sneaker.',
-    openingBid: '150',
-    imageUrls: ['','https://firebasestorage.googleapis.com/v0/b/sneakbid-e571f.appspot.com/o/sneakerImages%2FAir_Jordans_1.jpeg?alt=media&token=76d93380-dcb2-4ae1-8a80-2a75c23aa777'],
-    sellerId: 'seller456',
-    sizesAvailable: ['8', '9', '10'],
-    status: 'closed' as 'closed',
-    topBids: [{ userId: 'user1', amount: '250' }, { userId: 'user2', amount: '300' }],
-    type: "Retro",
-  },
-  {
-    name: 'Yeezy Boost 350 ',
-    description: 'The Yeezy Boost 350 is a trendy and comfortable sneaker.',
-    openingBid: '150',
-    imageUrls: ['','https://firebasestorage.googleapis.com/v0/b/sneakbid-e571f.appspot.com/o/sneakerImages%2FAir_Jordans_1.jpeg?alt=media&token=76d93380-dcb2-4ae1-8a80-2a75c23aa777'],
-    sellerId: 'seller456',
-    sizesAvailable: ['8', '9', '10'],
-    status: 'closed' as 'closed',
-    topBids: [{ userId: 'user1', amount: '250' }, { userId: 'user2', amount: '300' }],
-    type: "Retro",
-  },
-  {
-    name: 'Yeezy Boost 350 ',
-    description: 'The Yeezy Boost 350 is a trendy and comfortable sneaker.',
-    openingBid: '150',
-    imageUrls: ['','https://firebasestorage.googleapis.com/v0/b/sneakbid-e571f.appspot.com/o/sneakerImages%2FAir_Jordans_1.jpeg?alt=media&token=76d93380-dcb2-4ae1-8a80-2a75c23aa777'],
-    sellerId: 'seller456',
-    sizesAvailable: ['8', '9', '10'],
-    status: 'closed' as 'closed',
-    topBids: [{ userId: 'user1', amount: '250' }, { userId: 'user2', amount: '300' }],
-    type: "Retro",
-  },
-  // Add more sneakers for testing
-];
+export const dynamic = 'force-dynamic'; // Ensures the page regenerates on each request
 
-export default function Collections() {
+export default async function Collections() {
+  const sneakers: Sneaker[] = await getSneakers();
+
   return (
     <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4 lg:grid-cols-6">
-      {sneakers.map((sneaker, index) => (
-        <SneakerCard key={index} sneaker={sneaker} />
+      {sneakers.map((sneaker) => (
+        <SneakerCard key={sneaker.id} sneaker={sneaker} />
       ))}
     </div>
   );

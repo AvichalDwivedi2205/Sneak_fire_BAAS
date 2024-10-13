@@ -2,8 +2,9 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from "firebase/auth"
-import { getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { Sneaker } from "@/schema/schema";
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,4 +24,13 @@ const googleProvider = new GoogleAuthProvider();
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
-export { app, auth, googleProvider, firestore, storage };
+const getSneakers = async (): Promise<Sneaker[]> => {
+  const sneakersCol = collection(firestore, 'sneakers');
+  const snapshot = await getDocs(sneakersCol);
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Sneaker[];
+};
+
+export { app, auth, googleProvider, firestore, storage, getSneakers };
