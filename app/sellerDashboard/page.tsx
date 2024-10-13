@@ -28,7 +28,17 @@ const SellerDashboard: React.FC = () => {
     openingBid: "",
     sizesAvailable: [],
   });
-  const [images, setImages] = useState<File[]>([]);
+  const [images, setImages] = useState<{
+    front: File | null;
+    side: File | null;
+    back: File | null;
+    sole: File | null;
+  }>({
+    front: null,
+    side: null,
+    back: null,
+    sole: null,
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -69,7 +79,7 @@ const SellerDashboard: React.FC = () => {
       );
       const sneakerDocs = await getDocs(sneakersQuery);
 
-      // Map sneaker data directly (no need to fetch images separately)
+      // Map sneaker data directly
       const sneakersData = sneakerDocs.docs.map(
         (doc: QueryDocumentSnapshot<DocumentData>) => {
           const sneaker = { id: doc.id, ...doc.data() } as Sneaker;
@@ -98,20 +108,27 @@ const SellerDashboard: React.FC = () => {
     setNewSneaker((prev) => ({ ...prev, sizesAvailable: sizes }));
   };
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.files) {
-      setImages(Array.from(e.target.files));
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>, type: string): void => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImages((prev) => ({ ...prev, [type]: file }));
     }
   };
 
   const uploadImages = async (sneakerId: string): Promise<string[]> => {
     const imageUrls: string[] = [];
-    for (const image of images) {
-      const imageRef = ref(storage, `sneakers/${sneakerId}/${image.name}`);
-      await uploadBytes(imageRef, image);
-      const url = await getDownloadURL(imageRef);
-      imageUrls.push(url);
+    const imageTypes = ["front", "side", "back", "sole"];
+
+    for (const type of imageTypes) {
+      const imageFile = images[type as keyof typeof images];
+      if (imageFile) {
+        const imageRef = ref(storage, `sneakers/${sneakerId}/${type}.jpg`);
+        await uploadBytes(imageRef, imageFile);
+        const url = await getDownloadURL(imageRef);
+        imageUrls.push(url);
+      }
     }
+
     return imageUrls;
   };
 
@@ -140,7 +157,12 @@ const SellerDashboard: React.FC = () => {
         openingBid: "",
         sizesAvailable: [],
       });
-      setImages([]);
+      setImages({
+        front: null,
+        side: null,
+        back: null,
+        sole: null,
+      });
     } catch (error) {
       console.error("Error adding sneaker: ", error);
     }
@@ -205,34 +227,75 @@ const SellerDashboard: React.FC = () => {
             required
           />
 
-          <div className="col-span-2">
-            <label className="block mb-2 text-gray-800 dark:text-gray-300">
-              Upload Sneaker Images (Front, Side, Back, Sole)
-            </label>
-            <input
-              type="file"
-              onChange={handleImageChange}
-              multiple
-              accept="image/*"
-              className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              required
-            />
+          {/* Image Uploads */}
+          <div className="col-span-2 grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-2 text-gray-800 dark:text-gray-300">
+                Upload Front Image
+              </label>
+              <input
+                type="file"
+                onChange={(e) => handleImageChange(e, "front")}
+                accept="image/*"
+                className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-2 text-gray-800 dark:text-gray-300">
+                Upload Side Image
+              </label>
+              <input
+                type="file"
+                onChange={(e) => handleImageChange(e, "side")}
+                accept="image/*"
+                className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-2 text-gray-800 dark:text-gray-300">
+                Upload Back Image
+              </label>
+              <input
+                type="file"
+                onChange={(e) => handleImageChange(e, "back")}
+                accept="image/*"
+                className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-2 text-gray-800 dark:text-gray-300">
+                Upload Sole Image
+              </label>
+              <input
+                type="file"
+                onChange={(e) => handleImageChange(e, "sole")}
+                accept="image/*"
+                className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                required
+              />
+            </div>
           </div>
-
-          <button
-            type="submit"
-            className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white p-2 rounded col-span-2 transition-transform transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-          >
-            Add Sneaker
-          </button>
         </div>
+
+        <button
+          type="submit"
+          className="mt-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white py-2 px-4 rounded-lg shadow-md hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transform hover:scale-105 transition-transform duration-300 ease-in-out"
+        >
+          Add Sneaker
+        </button>
       </form>
 
-      {/* Display the list of sneakers */}
-      <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-300">Your Sneakers</h2>
+      {/* Display Sneakers */}
+      <h1 className="ml-5 underline underline-offset-4 font-bold text-gray-800 dark:text-gray-300 text-2xl">Active/ Past Sales</h1>
       <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4 lg:grid-cols-6">
         {sneakers.map((sneaker) => (
-          <SneakerCard key={sneaker.id} sneaker={sneaker} />
+          <SneakerCard
+            key={sneaker.id}
+            sneaker={sneaker}
+          />
         ))}
       </div>
     </div>
