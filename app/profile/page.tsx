@@ -94,7 +94,7 @@ export default function ProfilePage() {
               Seller/Buyer Information
             </h2>
             <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
-              Edit
+              Contact U
             </button>
           </div>
 

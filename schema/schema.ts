@@ -8,7 +8,8 @@ export type User = {
     createdAt: Date;
     profilePicture?: string;
     shippingInfo?: {
-      basicAddress: string;
+      Addresslane1: string;
+      Addresslane2: string;
       Area: string;
       Landmark: string;
       pinCode: string;
@@ -30,7 +31,8 @@ export type Sneaker = {
     topBids: {userId: string, amount: string}[];
   };
 
-  interface Bid {
+  export interface Bid {
     userId: string;
     amount: string;
+    lastBidTime?: number;
   }
