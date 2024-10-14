@@ -12,8 +12,8 @@ import {
   sendEmailVerification,
 } from "firebase/auth";
 import Link from "next/link";
-import { getDoc, doc, setDoc } from "firebase/firestore"; // Firestore imports
-import { firestore } from "@/config/firebase"; // Firestore config
+import { getDoc, doc, setDoc } from "firebase/firestore";
+import { firestore } from "@/config/firebase";
 
 const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   const [email, setEmail] = useState("");
@@ -24,7 +24,7 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   // Function to check if a user exists in Firestore
   const checkUserExistsInFirestore = async (uid: string) => {
     const userDoc = await getDoc(doc(firestore, "users", uid));
-    return userDoc.exists(); // Returns true if the user already exists
+    return userDoc.exists(); 
   };
 
   // Function to save user in Firestore only if they don't already exist
@@ -37,8 +37,8 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
         name: user.displayName || "",
         email: user.email || "",
         phone: user.phoneNumber || "",
-        isSeller: false, // Default value, can be updated later
-        shoeSize: 0, // Default value, can be updated later
+        isSeller: false, 
+        shoeSize: 0, 
         sellerVerification: "N/A",
         createdAt: new Date(),
         profilePicture: user.photoURL || "",
@@ -46,22 +46,20 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
       };
       await setDoc(doc(firestore, "users", user.uid), userData);
 
-      // Save user data to local storage
-      localStorage.setItem("isSeller", JSON.stringify(userData.isSeller));
+      // Save user shoeSize and isSeller to local storage
       localStorage.setItem("shoeSize", JSON.stringify(userData.shoeSize));
     } else {
       console.log("User already exists in Firestore");
-      // Fetch existing user data and store in local storage
+      // Fetch shoeSize and isSeller and store in local storage
       const existingUser = (await getDoc(doc(firestore, "users", user.uid))).data();
       if (existingUser) {
-        localStorage.setItem("isSeller", JSON.stringify(existingUser.isSeller));
         localStorage.setItem("shoeSize", JSON.stringify(existingUser.shoeSize));
       }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the form from reloading the page
+    e.preventDefault();
   
     try {
       if (isSignUp) {

@@ -22,6 +22,8 @@ export const firebaseConfig = {
 // Initialize Firebase    
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const authPhone = getAuth();
+auth.languageCode = 'it';
 
 const googleProvider = new GoogleAuthProvider();
 const firestore = getFirestore(app);
@@ -48,4 +50,4 @@ export async function getSneakerById(id: string): Promise<Sneaker | null> {
   }
 }
 
-export { app, auth, googleProvider, firestore, storage, getSneakers, realtimeDb };
+export { app, auth, googleProvider, firestore, storage, getSneakers, realtimeDb, authPhone};

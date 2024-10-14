@@ -5,6 +5,7 @@ import { signOut } from "firebase/auth";
 import { auth, firestore } from "@/config/firebase"; // Firebase imports
 import { doc, getDoc } from "firebase/firestore"; // Firestore imports
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -60,32 +61,51 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* Personal Information Section */}
-        <div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
-              Personal Information
-            </h2>
-            <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
-              Edit
-            </button>
-          </div>
+        {/* Name and Shoe Size Section */}
+<div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
+      Name & Shoe Size
+    </h2>
+    <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
+      Edit
+    </button>
+  </div>
 
-          <div className="text-gray-800 dark:text-gray-300">
-            <div className="mb-2">
-              <label className="font-semibold">Name:</label>
-              <p>{profile?.name || "Not Provided"}</p>
-            </div>
-            <div className="mb-2">
-              <label className="font-semibold">Phone:</label>
-              <p>{profile?.phone || "Not Provided"}</p>
-            </div>
-            <div className="mb-2">
-              <label className="font-semibold">Shoe Size:</label>
-              <p>{profile?.shoeSize || "Not Provided"}</p>
-            </div>
-          </div>
-        </div>
+  <div className="text-gray-800 dark:text-gray-300">
+    <div className="mb-2">
+      <label className="font-semibold">Name:</label>
+      <p>{profile?.name || "Not Provided"}</p>
+    </div>
+    <div className="mb-2">
+      <label className="font-semibold">Shoe Size:</label>
+      <p>{profile?.shoeSize || "Not Provided"}</p>
+    </div>
+  </div>
+</div>
+
+{/* Phone Section */}
+<div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
+      Phone
+    </h2>
+    <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
+      Edit
+    </button>
+  </div>
+
+  <div className="text-gray-800 dark:text-gray-300">
+    <div className="mb-2">
+      <label className="font-semibold">Phone:</label>
+      <p>{profile?.phone || "Not Provided"}</p>
+    </div>
+  </div>
+</div>
+
+
+        {/* Phone  number*/}
+
 
         {/* Seller/Buyer Information Section */}
         <div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 p-4 rounded-lg shadow-inner mb-6">
@@ -94,7 +114,7 @@ export default function ProfilePage() {
               Seller/Buyer Information
             </h2>
             <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
-              Contact U
+              Contact Us
             </button>
           </div>
 
@@ -103,12 +123,10 @@ export default function ProfilePage() {
               <label className="font-semibold">Status:</label>
               <p>{profile?.isSeller ? "Seller" : "Buyer"}</p>
             </div>
-            {profile?.isSeller && (
               <div className="mb-2">
-                <label className="font-semibold">Verification:</label>
+                <label className="font-semibold">Seller Verification:</label>
                 <p>{profile?.sellerVerification || "Pending"}</p>
               </div>
-            )}
           </div>
         </div>
         {/* Shipping Information Section */}

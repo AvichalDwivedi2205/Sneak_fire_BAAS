@@ -3,6 +3,7 @@ import React, { useState, useEffect, ChangeEvent, FormEvent, useRef } from "reac
 import { useRouter } from "next/navigation";
 import { User, Sneaker } from "@/schema/schema";
 import { auth, firestore, storage } from "@/config/firebase";
+import { getDoc } from "firebase/firestore";
 import {
   collection,
   addDoc,
@@ -49,19 +50,32 @@ const SellerDashboard: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         router.push("/signin");
         return;
       }
 
-      const isSeller = localStorage.getItem("isSeller") === "true";
-      if (!isSeller) {
-        router.push("/contact");
-        return;
-      }
+      // Get user data from Firestore based on uid
+      const userDocRef = doc(firestore, "users", currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
 
-      fetchUserAndSneakers(currentUser);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const { isSeller } = userData; // Get the isSeller value from Firestore
+
+        // If the user is not a seller, redirect to the contact page
+        if (!isSeller) {
+          router.push("/contact");
+          return;
+        }
+
+        // Fetch user and sneakers if the user is a seller
+        fetchUserAndSneakers(currentUser);
+      } else {
+        console.log("No such user document exists.");
+        router.push("/signin");
+      }
     });
 
     return () => unsubscribe();
