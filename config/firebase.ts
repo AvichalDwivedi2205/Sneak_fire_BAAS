@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, GoogleAuthProvider } from "firebase/auth"
+import { getAuth, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth"
 import { collection, getDocs, getFirestore, doc, getDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { Sneaker } from "@/schema/schema";
@@ -22,7 +22,7 @@ export const firebaseConfig = {
 // Initialize Firebase    
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const authPhone = getAuth();
+
 auth.languageCode = 'it';
 
 const googleProvider = new GoogleAuthProvider();
@@ -42,7 +42,6 @@ const getSneakers = async (): Promise<Sneaker[]> => {
 export async function getSneakerById(id: string): Promise<Sneaker | null> {
   const sneakerRef = doc(firestore, 'sneakers', id);
   const sneakerSnap = await getDoc(sneakerRef);
-
   if (sneakerSnap.exists()) {
     return { id: sneakerSnap.id, ...sneakerSnap.data() } as Sneaker;
   } else {
@@ -50,4 +49,4 @@ export async function getSneakerById(id: string): Promise<Sneaker | null> {
   }
 }
 
-export { app, auth, googleProvider, firestore, storage, getSneakers, realtimeDb, authPhone};
+export { app, auth, googleProvider, firestore, storage, getSneakers, realtimeDb, RecaptchaVerifier, signInWithPhoneNumber};

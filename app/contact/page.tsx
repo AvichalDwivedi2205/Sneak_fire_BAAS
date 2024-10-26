@@ -53,6 +53,7 @@ const ContactPage: React.FC = () => {
     const re = /^\+91 \d{5} \d{5}$/;
     return re.test(phone);
   };
+  
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
