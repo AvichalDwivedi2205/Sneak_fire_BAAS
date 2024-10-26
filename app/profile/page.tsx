@@ -67,7 +67,7 @@ export default function ProfilePage() {
     <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
       Name & Shoe Size
     </h2>
-    <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
+    <button className="bg-primary-500 text-gray-800 dark:text-gray-200 px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
       Edit
     </button>
   </div>
@@ -90,7 +90,7 @@ export default function ProfilePage() {
     <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
       Phone
     </h2>
-    <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
+    <button className="bg-primary-500 text-gray-800 dark:text-gray-200 px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
       Edit
     </button>
   </div>
@@ -113,7 +113,7 @@ export default function ProfilePage() {
             <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
               Seller/Buyer Information
             </h2>
-            <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
+            <button className="bg-primary-500 text-gray-800 dark:text-gray-200 px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
               Contact Us
             </button>
           </div>
@@ -135,7 +135,7 @@ export default function ProfilePage() {
             <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">
               Shipping Information
             </h2>
-            <button className="bg-primary-500 text-white px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
+            <button className="bg-primary-500 text-gray-800 dark:text-gray-200 px-4 py-1 rounded-md hover:bg-primary-600 focus:ring focus:ring-primary-400">
               Edit
             </button>
           </div>

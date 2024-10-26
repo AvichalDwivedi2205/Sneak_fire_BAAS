@@ -1,6 +1,8 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import NavbarRender from "@/components/Navbar/Navbar-render";
+import ToggleThemeButton from "@/components/darkMode/ToggleComponent";
+import { ThemeProvider } from "@/components/darkMode/ThemeProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,10 +22,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <ThemeProvider>
       <body className="bg-gray-100 dark:bg-gray-900">
             <NavbarRender />
             {children}
+            <ToggleThemeButton />
       </body>
+      </ThemeProvider>
     </html>
   );
 }

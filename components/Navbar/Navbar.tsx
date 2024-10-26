@@ -84,7 +84,7 @@ const Navbar = () => {
                 onClick={() => handleSetActive(item.name)}
                 className={`ml-4 px-3 py-2 rounded-md text-sm font-medium ${
                   active === item.name
-                    ? "border-b-2 border-blue-500 dark:border-gray-400"
+                    ? "border-b-2 border-blue-500 dark:border-gray-400 text-gray-800 dark:text-gray-200"
                     : "text-gray-600 dark:text-gray-300 hover:border-b-2 hover:border-gray-400"
                 }`}
               >
