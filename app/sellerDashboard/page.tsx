@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, ChangeEvent, FormEvent, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, Sneaker } from "@/schema/schema";
 import { auth, firestore, storage } from "@/config/firebase";
@@ -34,14 +35,14 @@ const SellerDashboard: React.FC = () => {
     front: null,
     side: null,
     back: null,
-    sole: null,
+    other_side: null,
   });
 
   const imageRefs = {
     front: useRef<HTMLInputElement>(null),
     side: useRef<HTMLInputElement>(null),
     back: useRef<HTMLInputElement>(null),
-    sole: useRef<HTMLInputElement>(null),
+    other_side: useRef<HTMLInputElement>(null),
   };
 
   const router = useRouter();
@@ -298,7 +299,9 @@ const SellerDashboard: React.FC = () => {
       </h2>
       <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4 lg:grid-cols-6">
         {sneakers.map((sneaker) => (
+          <Link href={`/sneaker/${sneaker.id}`} key={sneaker.id} className="block">
           <SneakerCard key={sneaker.id} sneaker={sneaker} />
+          </Link>
         ))}
       </div>
     </div>
