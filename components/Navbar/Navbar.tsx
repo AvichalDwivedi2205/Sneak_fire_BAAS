@@ -6,13 +6,15 @@ import { auth } from "@/config/firebase";
 import { FiMenu, FiX } from "react-icons/fi";
 import { usePathname } from "next/navigation"; // Import for path detection
 import { signOut } from "firebase/auth"; // Import signOut function
+import {firestore} from "@/config/firebase"
+import {doc, getDoc} from "firebase/firestore"
 
 const Navbar = () => {
+  const [sellerVerification, setSellerVerification] = useState('');
   const [active, setActive] = useState("Home");
   const [user, loading, error] = useAuthState(auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSeller, setIsSeller] = useState(false); // State to track if the user is a seller
-
   const pathname = usePathname(); // Detect the current path
 
   const navigation = [
@@ -22,10 +24,48 @@ const Navbar = () => {
     { name: "Contact", href: "/contact" },
   ];
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const userRef = doc(firestore, 'users', user.uid);
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            // Directly check the boolean value and string from Firebase
+            setIsSeller(userData.isSeller === true); // Explicitly check for true
+            setSellerVerification(userData.sellerVerification || '');
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
   // useEffect to check localStorage for isSeller and update the state
   useEffect(() => {
-    const sellerStatus = localStorage.getItem("isSeller") === "true";
-    setIsSeller(sellerStatus);
+    const checkSellerStatus = async () => {
+      if (user) {
+        try {
+          const userRef = doc(firestore, 'users', user.uid);
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setIsSeller(userData.isSeller || false);
+            setSellerVerification(userData.sellerVerification || 'N/A');
+          }
+        } catch (error) {
+          console.error("Error checking seller status:", error);
+        }
+      }
+    };
+  
+    checkSellerStatus();
   }, [user]);
 
   // useEffect to track changes in pathname and update the active state
@@ -137,23 +177,23 @@ const Navbar = () => {
                   />
                 </Link>
                 {/* Sell Button - Visible when user is authenticated and isSeller is true */}
-                {isSeller ?
-                  <Link
-                    href="/sellerDashboard"
-                    onClick={() => handleSetActive("Sell")}
-                    className="ml-4 px-2 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
-                  >
-                    Sell
-                  </Link>
-                  :
-                  <Link
-                    href="/contact"
-                    onClick={() => handleSetActive("Sell")}
-                    className="ml-4 px-2 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
-                  >
-                    Sell
-                  </Link>
-                }
+                {isSeller && sellerVerification === 'verified' ? (
+                    <Link
+                      href="/sellerDashboard"
+                      onClick={() => handleSetActive("Sell")}
+                      className="ml-4 px-2 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
+                    >
+                      Sell
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/contact"
+                      onClick={() => handleSetActive("Contact")}
+                      className="ml-4 px-2 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
+                    >
+                      Become Seller
+                    </Link>
+                  )}
                 {/* Sign Out Button */}
                 <button
                   onClick={handleSignOut}
