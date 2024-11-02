@@ -14,7 +14,7 @@ export default async function Home() {
     <div className="p-4">
       {/* Active Bids Section */}
       <section>
-        <h2 className="text-center font-bold text-3xl text-neutral-800 dark:text-neutral-200 p-4 animate-pulse">Active Bids</h2>
+        <h2 className="text-center font-bold text-3xl sm:text-5xl lg:text-6xl text-neutral-800 dark:text-neutral-200 p-4">Active Bids</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
           {activeBids.map((sneaker) => (
             <Link href={`/sneaker/${sneaker.id}`} key={sneaker.id} className="block">
@@ -26,7 +26,7 @@ export default async function Home() {
 
       {/* Closed Bids Section */}
       <section className="mt-8">
-        <h2 className="text-center font-bold text-3xl text-neutral-800 dark:text-neutral-200 animate-pulse" >Closed Bids</h2>
+        <h2 className="text-center font-bold text-neutral-800 dark:text-neutral-200 text-3xl sm:text-5xl lg:text-6xl" >Closed Bids</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
           {closedBids.map((sneaker) => (
             <Link href={`/sneaker/${sneaker.id}`} key={sneaker.id} className="block">

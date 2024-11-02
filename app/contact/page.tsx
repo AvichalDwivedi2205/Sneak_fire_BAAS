@@ -2,15 +2,19 @@
 
 import React, { useState, FormEvent, useEffect } from 'react';
 import emailjs from '@emailjs/browser';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/config/firebase';
 import { User } from 'firebase/auth';
-import { getDoc } from 'firebase/firestore';
 
 interface FormState {
   name: string;
   email: string;
   phone: string;
+}
+
+interface SubmissionCount {
+  count: number;
+  date: string;
 }
 
 const ContactPage: React.FC = () => {
@@ -23,18 +27,75 @@ const ContactPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [canSubmit, setCanSubmit] = useState<boolean>(true);
+  const [isSeller, setIsSeller] = useState<boolean>(false);
 
   useEffect(() => {
-    const lastSubmission = localStorage.getItem('lastSubmission');
-    if (lastSubmission) {
-      const lastDate = new Date(lastSubmission);
-      const today = new Date();
-      if (lastDate.toDateString() === today.toDateString()) {
-        setCanSubmit(false);
-        setError("You've already submitted a form today. Please try again tomorrow.");
+    const checkUserStatus = async () => {
+      const user: User | null = auth.currentUser;
+      if (user) {
+        const userRef = doc(firestore, 'users', user.uid);
+        try {
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (userData.isSeller === true) {
+              setIsSeller(true);
+              setCanSubmit(false);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error checking user status:', error);
+        }
       }
+    };
+
+    checkUserStatus();
+    if (!isSeller) {
+      checkSubmissionLimit();
     }
-  }, []);
+  }, [isSeller]);
+
+  const checkSubmissionLimit = () => {
+    const submissionData = localStorage.getItem('submissionCount');
+    if (submissionData) {
+      const submission: SubmissionCount = JSON.parse(submissionData);
+      const today = new Date().toDateString();
+      
+      if (submission.date === today) {
+        if (submission.count >= 3) {
+          setCanSubmit(false);
+          setError("You've reached the maximum number of submissions (3) for today. Please try again tomorrow.");
+        }
+      } else {
+        localStorage.setItem('submissionCount', JSON.stringify({ count: 0, date: today }));
+      }
+    } else {
+      localStorage.setItem('submissionCount', JSON.stringify({ count: 0, date: new Date().toDateString() }));
+    }
+  };
+
+  const updateSubmissionCount = () => {
+    const submissionData = localStorage.getItem('submissionCount');
+    if (submissionData) {
+      const submission: SubmissionCount = JSON.parse(submissionData);
+      const today = new Date().toDateString();
+      
+      if (submission.date === today) {
+        const newCount = submission.count + 1;
+        localStorage.setItem('submissionCount', JSON.stringify({ count: newCount, date: today }));
+        
+        if (newCount >= 3) {
+          setCanSubmit(false);
+          setError("You've reached the maximum number of submissions (3) for today.");
+        }
+      } else {
+        localStorage.setItem('submissionCount', JSON.stringify({ count: 1, date: today }));
+      }
+    } else {
+      localStorage.setItem('submissionCount', JSON.stringify({ count: 1, date: new Date().toDateString() }));
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -53,12 +114,10 @@ const ContactPage: React.FC = () => {
     const re = /^\+91 \d{5} \d{5}$/;
     return re.test(phone);
   };
-  
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    if (!canSubmit) {
-      setError("You've already submitted a form today. Please try again tomorrow.");
+    if (!canSubmit || isSeller) {
       return;
     }
 
@@ -105,13 +164,7 @@ const ContactPage: React.FC = () => {
                 sellerVerification: 'pending'
               });
               console.log('Seller verification updated to pending.');
-            } else if (sellerVerification === 'verified' || sellerVerification === 'rejected') {
-              console.log('Seller verification status is already set to verified or rejected. No changes made.');
-            } else {
-              console.log('Seller verification status is neither N/A, verified, nor rejected. No changes made.');
             }
-          } else {
-            console.log('User document does not exist.');
           }
         } catch (error) {
           console.error('Error updating seller verification:', error);
@@ -120,8 +173,7 @@ const ContactPage: React.FC = () => {
 
       setShowAlert(true);
       setFormState({ name: '', email: '', phone: '' });
-      localStorage.setItem('lastSubmission', new Date().toISOString());
-      setCanSubmit(false);
+      updateSubmissionCount();
 
     } catch (error) {
       console.error('Error:', error);
@@ -140,67 +192,78 @@ const ContactPage: React.FC = () => {
             <h2 className="text-3xl font-bold mb-6">Contact Us</h2>
             <div className="space-y-4">
               <p><strong>Developer:</strong> Avichal Dwivedi</p>
-              <p><strong>Phone:</strong> +91 9279700314</p>
-              <p><strong>Email:</strong>dwivediavichal926@gmail.com</p>
+              <p><strong>Phone:</strong> +91 92797 00314</p>
+              <p><strong>Email:</strong> dwivediavichal926@gmail.com</p>
             </div>
           </div>
 
           {/* Contact Form Section */}
           <div className="md:w-1/2 p-8">
             <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Become A Seller</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Full Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formState.name}
-                  onChange={handleChange}
-                  required
-                  className="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
+            
+            {isSeller ? (
+              <div className="text-center p-8">
+                <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded">
+                  <p className="font-bold text-lg mb-2">You are already a seller!</p>
+                  <p>You have already been registered as a seller on our platform. You can access your seller dashboard to manage your listings and orders.</p>
+                </div>
               </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder='avichaldwivedi@gmail.com'
-                  value={formState.email}
-                  onChange={handleChange}
-                  required
-                  className="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  placeholder='+91 92xxx 87xxx'
-                  value={formState.phone}
-                  onChange={handleChange}
-                  required
-                  className="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isLoading || !canSubmit}
-                className="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 dark:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50"
-              >
-                {isLoading ? 'Submitting...' : 'Submit'}
-              </button>
-            </form>
-            {showAlert && (
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Full Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formState.name}
+                    onChange={handleChange}
+                    required
+                    className="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder='avichaldwivedi@gmail.com'
+                    value={formState.email}
+                    onChange={handleChange}
+                    required
+                    className="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Phone Number</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder='+91 92xxx 87xxx'
+                    value={formState.phone}
+                    onChange={handleChange}
+                    required
+                    className="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isLoading || !canSubmit}
+                  className="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 dark:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50"
+                >
+                  {isLoading ? 'Submitting...' : 'Submit'}
+                </button>
+              </form>
+            )}
+            
+            {showAlert && !isSeller && (
               <div className="mt-4 text-green-600 dark:text-green-400">
                 <p>Thank you! We will get back to you soon.</p>
               </div>
             )}
-            {error && (
+            {error && !isSeller && (
               <div className="mt-4 text-red-600 dark:text-red-400">
                 <p>{error}</p>
               </div>
