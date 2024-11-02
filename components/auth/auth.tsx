@@ -10,9 +10,10 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   sendEmailVerification,
+  fetchSignInMethodsForEmail,
 } from "firebase/auth";
 import Link from "next/link";
-import { getDoc, doc, setDoc } from "firebase/firestore";
+import { getDoc, doc, setDoc, query, collection, where, getDocs } from "firebase/firestore";
 import { firestore } from "@/config/firebase";
 
 const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
@@ -24,7 +25,15 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   // Function to check if a user exists in Firestore
   const checkUserExistsInFirestore = async (uid: string) => {
     const userDoc = await getDoc(doc(firestore, "users", uid));
-    return userDoc.exists(); 
+    return userDoc.exists();
+  };
+
+  // Function to check if email exists in Firestore
+  const checkEmailExistsInFirestore = async (email: string) => {
+    const usersRef = collection(firestore, "users");
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
   };
 
   // Function to save user in Firestore only if they don't already exist
@@ -37,8 +46,8 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
         name: user.displayName || "",
         email: user.email || "",
         phone: user.phoneNumber || "",
-        isSeller: false, 
-        shoeSize: 0, 
+        isSeller: false,
+        shoeSize: 0,
         sellerVerification: "N/A",
         createdAt: new Date(),
         profilePicture: user.photoURL || "",
@@ -60,50 +69,67 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       if (isSignUp) {
         // Check if a user with this email already exists
         const userDocRef = doc(firestore, "users", email);
         const userDoc = await getDoc(userDocRef);
-  
+
         if (userDoc.exists()) {
           setError("This email is already in use. Please use a different one.");
           return;
         }
-  
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCredential.user);
         alert("A verification email has been sent. Please check your inbox.");
-        
+
         // Save user to Firestore
         await saveUserInFirestore(userCredential.user);
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
+
         // Save user to Firestore
         await saveUserInFirestore(userCredential.user);
       }
-  
+
       // Redirect to profile page after successful authentication
       router.push("/profile");
     } catch (err: any) {
       setError(err.message);
     }
   };
-  
 
   const handleGoogleProvider = async () => {
     try {
-      const userCredential = await signInWithPopup(auth, googleProvider);
+      // Get the Google user's email before signing in
+      const result = await signInWithPopup(auth, googleProvider);
+      const userEmail = result.user.email;
 
-      // Save Google user to Firestore
-      await saveUserInFirestore(userCredential.user);
+      if (!userEmail) {
+        setError("Unable to get email from Google account");
+        return;
+      }
 
-      // Redirect to home page after successful Google sign-in
+      // Check if the email is already registered with email/password
+      const signInMethods = await fetchSignInMethodsForEmail(auth, userEmail);
+      const emailExists = await checkEmailExistsInFirestore(userEmail);
+
+      if (signInMethods.length > 0 && signInMethods.includes('password') && emailExists) {
+        setError("An account with this email already exists. Please sign in with email and password instead.");
+        return;
+      }
+
+      // If no existing account found, proceed with Google sign-in
+      await saveUserInFirestore(result.user);
       router.push("/profile");
     } catch (err: any) {
-      setError(err.message);
+      if (err.code === 'auth/account-exists-with-different-credential') {
+        setError("An account already exists with this email. Please sign in using your original sign-in method.");
+      } else {
+        setError(err.message);
+      }
     }
   };
 
@@ -150,7 +176,7 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
           <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
           <button
             className="mt-8 bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-            type="button" // Type should be button for Google Sign-in
+            type="button"
             onClick={handleGoogleProvider}
           >
             {isSignUp ? "Sign Up" : "Sign In"} with Google
