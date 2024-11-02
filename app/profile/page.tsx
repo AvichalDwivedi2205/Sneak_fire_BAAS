@@ -5,7 +5,6 @@ import { signOut } from "firebase/auth";
 import { auth, firestore } from "@/config/firebase"; // Firebase imports
 import { doc, getDoc } from "firebase/firestore"; // Firestore imports
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);

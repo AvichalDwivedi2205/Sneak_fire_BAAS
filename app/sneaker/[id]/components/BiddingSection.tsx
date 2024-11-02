@@ -141,7 +141,7 @@ export default function BiddingSection({ sneakerId, openingBid }: { sneakerId: s
   const renderBids = () => {
     const bidLabels = ['Highest Bid', 'Second Highest Bid', 'Third Highest Bid'];
     return topBids.map((bid, index) => (
-      <li key={index} className="mb-2">
+      <li key={index} className="mb-2 dark:text-gray-300 text-gray-700">
         {bidLabels[index]} - ₹{parseFloat(bid.amount).toLocaleString()}
       </li>
     ));

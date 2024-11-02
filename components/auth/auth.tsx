@@ -39,7 +39,6 @@ const AuthForm = ({ isSignUp }: { isSignUp: boolean }) => {
   // Function to save user in Firestore only if they don't already exist
   const saveUserInFirestore = async (user: any) => {
     const userExists = await checkUserExistsInFirestore(user.uid);
-    console.log(user.uid);
 
     if (!userExists) {
       const userData = {
