@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation"; // Import for path detection
 import { signOut } from "firebase/auth"; // Import signOut function
 import {firestore} from "@/config/firebase"
 import {doc, getDoc} from "firebase/firestore"
+import { User } from "lucide-react";
 
 const Navbar = () => {
   const [sellerVerification, setSellerVerification] = useState('');
@@ -86,16 +87,6 @@ const Navbar = () => {
     setIsMobileMenuOpen(false); // Close mobile menu on selection
   };
 
-  // Firebase SignOut handler
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      localStorage.removeItem("isSeller"); // Remove isSeller from localStorage after signout
-    } catch (error) {
-      console.error("Sign Out Error:", error);
-    }
-  };
-
   return (
     <nav className="bg-gradient-to-r from-gray-200 via-gray-100 to-gray-50 dark:bg-gradient-to-r dark:from-gray-800 dark:via-gray-900 dark:to-gray-950 shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -169,18 +160,14 @@ const Navbar = () => {
             ) : (
               <>
                 <Link href="/profile" onClick={() => handleSetActive("Profile")}>
-                  <img
-                    src={user.photoURL || "/default-profile.png"}
-                    alt="Profile"
-                    className="h-8 w-8 rounded-full"
-                  />
+                <User className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </Link>
                 {/* Sell Button - Visible when user is authenticated and isSeller is true */}
                 {isSeller && sellerVerification === 'verified' ? (
                     <Link
                       href="/sellerDashboard"
                       onClick={() => handleSetActive("Sell")}
-                      className="ml-4 px-2 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
+                      className="ml-4 px-2 bg-gradient-to-r text-sm lg:text-lg from-gray-400 via-gray-500 to-gray-600 text-white py-1 rounded-lg shadow-md hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 transform hover:scale-105 transition-transform duration-300 ease-in-out dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:via-gray-800 dark:hover:to-gray-900"
                     >
                       Sell
                     </Link>
@@ -194,12 +181,6 @@ const Navbar = () => {
                     </Link>
                   )}
                 {/* Sign Out Button */}
-                <button
-                  onClick={handleSignOut}
-                 className="bg-red-500 ml-4 text-white p-1 rounded-md hover:bg-red-600 focus:ring focus:ring-red-400"
-                >
-                  Sign Out
-                </button>
               </>
             )}
 
@@ -207,7 +188,7 @@ const Navbar = () => {
             <div className="md:hidden ml-2">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none"
+                className="mt-2 pl-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none"
               >
                 {isMobileMenuOpen ? (
                   <FiX className="h-6 w-6" />
