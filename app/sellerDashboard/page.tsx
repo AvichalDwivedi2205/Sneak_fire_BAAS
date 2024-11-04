@@ -3,7 +3,7 @@ import React, { useState, useEffect, ChangeEvent, FormEvent, useRef } from "reac
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, Sneaker } from "@/schema/schema";
-import { auth, firestore, storage } from "@/config/firebase";
+import { auth, firestore, storage, realtimeDb } from "@/config/firebase";
 import { getDoc } from "firebase/firestore";
 import {
   collection,
@@ -13,8 +13,10 @@ import {
   getDocs,
   doc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from "firebase/storage";
+import { ref as databaseRef, remove } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import SneakerCard from "@/components/Card/Card";
 
@@ -22,6 +24,9 @@ const SellerDashboard: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [sneakers, setSneakers] = useState<Sneaker[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [newSneaker, setNewSneaker] = useState<Partial<Sneaker>>({
     name: "",
     type: "",
@@ -175,9 +180,66 @@ const SellerDashboard: React.FC = () => {
     });
   };
 
+  const handleCloseBid = async (sneakerId: string) => {
+    try {
+      setActionLoading(sneakerId);
+      const sneakerRef = doc(firestore, "sneakers", sneakerId);
+      await updateDoc(sneakerRef, {
+        status: "closed"
+      });
+
+      setSneakers(prevSneakers =>
+        prevSneakers.map(sneaker =>
+          sneaker.id === sneakerId
+            ? { ...sneaker, status: "closed" }
+            : sneaker
+        )
+      );
+    } catch (error) {
+      console.error("Error closing bid:", error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteSneaker = async (sneakerId: string) => {
+    if (!window.confirm("Are you sure you want to delete this sneaker? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setActionLoading(sneakerId);
+      
+      // 1. Delete from Firestore
+      await deleteDoc(doc(firestore, "sneakers", sneakerId));
+
+      // 2. Delete all images from Storage
+      const storageRef = ref(storage, `sneakers/${sneakerId}`);
+      const imagesList = await listAll(storageRef);
+      const deletePromises = imagesList.items.map(item => deleteObject(item));
+      await Promise.all(deletePromises);
+
+      // 3. Delete bids from Realtime Database
+      const bidsRef = databaseRef(realtimeDb, sneakerId);
+      await remove(bidsRef);
+
+      // 4. Update local state
+      setSneakers(prevSneakers =>
+        prevSneakers.filter(sneaker => sneaker.id !== sneakerId)
+      );
+    } catch (error) {
+      console.error("Error deleting sneaker:", error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!user?.email) return;
+    
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
       const sneakerData: Omit<Sneaker, "id"> = {
@@ -196,13 +258,16 @@ const SellerDashboard: React.FC = () => {
       resetForm();
     } catch (error) {
       console.error("Error adding sneaker:", error);
+      setSubmitError("Failed to add sneaker. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -286,20 +351,74 @@ const SellerDashboard: React.FC = () => {
 
         <button
           type="submit"
-          className="mt-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white py-2 px-4 rounded-lg shadow-md hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transform hover:scale-105 transition-transform duration-300 ease-in-out"
+          disabled={isSubmitting}
+          className={`mt-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white py-2 px-4 rounded-lg shadow-md hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transform hover:scale-105 transition-transform duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed ${
+            isSubmitting ? 'cursor-not-allowed opacity-75' : ''
+          }`}
         >
-          Add Sneaker
+          {isSubmitting ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              Adding Sneaker...
+            </div>
+          ) : (
+            'Add Sneaker'
+          )}
         </button>
       </form>
 
       <h2 className="ml-5 underline underline-offset-4 font-bold text-gray-800 dark:text-gray-300 text-2xl">
         Active/Past Sales
       </h2>
-      <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {sneakers.map((sneaker) => (
-          <Link href={`/sneaker/${sneaker.id}`} key={sneaker.id} className="block">
-          <SneakerCard key={sneaker.id} sneaker={sneaker} />
-          </Link>
+          <div key={sneaker.id} className="flex flex-col">
+            <Link href={`/sneaker/${sneaker.id}`} className="block flex-grow">
+              <SneakerCard sneaker={sneaker} />
+            </Link>
+            <div className="mt-2 flex gap-2">
+              {sneaker.status === "open" && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleCloseBid(sneaker.id || "");
+                  }}
+                  disabled={actionLoading === sneaker.id}
+                  className={`flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg shadow-md transition-colors duration-300 ${
+                    actionLoading === sneaker.id ? 'cursor-not-allowed opacity-75' : ''
+                  }`}
+                >
+                  {actionLoading === sneaker.id ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Closing...
+                    </div>
+                  ) : (
+                    'Close Bid'
+                  )}
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDeleteSneaker(sneaker.id || "");
+                }}
+                disabled={actionLoading === sneaker.id}
+                className={`flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg shadow-md transition-colors duration-300 ${
+                  actionLoading === sneaker.id ? 'cursor-not-allowed opacity-75' : ''
+                }`}
+              >
+                {actionLoading === sneaker.id ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Deleting...
+                  </div>
+                ) : (
+                  'Delete'
+                )}
+              </button>
+            </div>
+          </div>
         ))}
       </div>
     </div>
